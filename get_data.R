@@ -55,7 +55,7 @@ vars_to_keep <- c(
   "ESTADO",
   "IPCF", "ITF", "IX_TOT", "P47T",
   "P21", "PP3E_TOT", "CH06", "CH04", "CH12", "CH13", "CAT_OCUP", "PP07H",
-  "PP04D_COD", "PP04G"
+  "PP04D_COD", "PP04B_COD", "PP04G"
 )
 
 eph_base_numeric <- eph_all %>%
