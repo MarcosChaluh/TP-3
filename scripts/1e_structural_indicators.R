@@ -1,0 +1,63 @@
+source(file.path("R", "project_paths.R"))
+source(file.path("R", "data_access.R"))
+source(file.path("R", "structural_indicators.R"))
+source(file.path("R", "output_utils.R"))
+
+library(dplyr)
+library(expss)
+library(ggplot2)
+library(tidyr)
+
+paths <- ensure_project_structure()
+eph_base_labeled <- load_processed_data("eph_individual_2017_2025_std.rds", paths)
+
+ANO_RECIENTE <- 2025
+TRIM_RECIENTE <- 1
+
+informalidad <- compute_informality_rate(eph_base_labeled, ANO_RECIENTE, TRIM_RECIENTE)
+print(informalidad, n = 10)
+
+save_table(informalidad, "indicador_informalidad.csv", paths)
+
+g_informalidad <- plot_ranked_bars(
+  informalidad,
+  "tasa_no_registro_pct",
+  "Tasa de Asalariados No Registrados (Informalidad)",
+  sprintf("Porcentaje de asalariados sin descuento jubilatorio %dT%d", ANO_RECIENTE, TRIM_RECIENTE),
+  "Tasa de No Registro (%)"
+)
+
+save_plot(g_informalidad, "informalidad_aglomerados.png", paths, width = 11, height = 8)
+print(g_informalidad)
+
+brecha_genero <- compute_activity_gender_gap(eph_base_labeled, ANO_RECIENTE, TRIM_RECIENTE)
+print(brecha_genero, n = 10)
+
+save_table(brecha_genero, "indicador_brecha_genero.csv", paths)
+
+g_brecha_genero <- plot_ranked_bars(
+  brecha_genero,
+  "brecha_actividad_pp",
+  "Brecha de Género en Tasa de Actividad",
+  sprintf("Diferencia en puntos porcentuales (Hombres - Mujeres) %dT%d", ANO_RECIENTE, TRIM_RECIENTE),
+  "Brecha de Actividad (p.p.)"
+)
+
+save_plot(g_brecha_genero, "brecha_genero_actividad.png", paths, width = 11, height = 8)
+print(g_brecha_genero)
+
+cuentapropismo <- compute_self_employment_rate(eph_base_labeled, ANO_RECIENTE, TRIM_RECIENTE)
+print(cuentapropismo, n = 10)
+
+save_table(cuentapropismo, "indicador_cuentapropismo.csv", paths)
+
+g_cuentapropismo <- plot_ranked_bars(
+  cuentapropismo,
+  "tasa_cuentaprop_pct",
+  "Tasa de Cuentapropismo",
+  sprintf("Porcentaje de ocupados que trabajan por su cuenta %dT%d", ANO_RECIENTE, TRIM_RECIENTE),
+  "Tasa de Cuentapropismo (%)"
+)
+
+save_plot(g_cuentapropismo, "cuentapropismo_aglomerados.png", paths, width = 11, height = 8)
+print(g_cuentapropismo)
