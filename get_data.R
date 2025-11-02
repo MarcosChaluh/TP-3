@@ -52,7 +52,7 @@ vars_to_keep <- c(
   # --- IDs y Contexto ---
   "ANO4", "TRIMESTRE", 
   "CODUSU", "NRO_HOGAR", "COMPONENTE", # IDs de hogar y persona
-  "PONDERA", "AGLOMERADO", "REGION",   # Ponderador y Geografía
+  "PONDERA","PONDIH", "PONDIIO","PONDII", "AGLOMERADO", "REGION",   # Ponderador y Geografía
   
   # --- Punto 1a: Tasas de Mercado Laboral ---
   "ESTADO",
@@ -104,8 +104,6 @@ eph_base_labeled <- organize_labels(eph_base_numeric, type = "individual")
 dir.create("eph_data", showWarnings = FALSE)
 # Guardamos la base final con etiquetas
 write_rds(eph_base_labeled, "eph_data/eph_individual_2017_2025_std.rds")
-write_csv(eph_base_labeled, "eph_data/eph_individual_2017_2025_std.csv")
-
 
 # ==== 11) Chequeo rápido ====
 eph_base_labeled %>%

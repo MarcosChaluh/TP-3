@@ -33,7 +33,7 @@ tasas_mercado_laboral <- eph_base_labeled %>%
     pea = total_ocupados + total_desocupados,
     
     # Población de referencia (10 años o más) = PEA + Inactivos (ESTADO == 3)
-    pob_10_mas = pea + sum(PONDERA[ESTADO == 3], na.rm = TRUE),
+    pob_10_mas = sum(PONDERA),
     
     .groups = 'drop'
   ) %>%
@@ -55,7 +55,6 @@ tasas_mercado_laboral <- eph_base_labeled %>%
 
 # --- Ver los resultados en la consola ---
 print(tasas_mercado_laboral, n = 40)
-
 
 ## -----------------------------------------------
 ## 2. GRÁFICO DE SERIES DE TIEMPO CON ETIQUETAS
@@ -90,9 +89,6 @@ label_data <- plot_data %>%
   slice_max(order_by = fecha_decimal, n = 1) %>%
   ungroup() %>%
   
-  # --- ¡AQUÍ ESTÁ LA CORRECCIÓN! ---
-  # Usamos la columna AGLOMERADO_NUM (que es puramente numérica)
-  # para la comparación en case_when().
   mutate(
     label_corta = case_when(
       AGLOMERADO_NUM == 33 ~ "GBA",
