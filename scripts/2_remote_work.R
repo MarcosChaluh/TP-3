@@ -27,3 +27,8 @@ tabla_aglomerado <- summarise_by_agglomerado(eph_final)
 print(tabla_aglomerado, n = 20)
 
 save_table(tabla_aglomerado, "tabla_2_AI_WFH_por_Aglomerado.csv", paths)
+
+tabla_industria <- summarise_by_industry(eph_final)
+print(tabla_industria, n = 20)
+
+save_table(tabla_industria, "tabla_3_AI_WFH_por_Industria.csv", paths)

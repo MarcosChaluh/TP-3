@@ -3,7 +3,7 @@
 load_eph_for_remote_work <- function(paths, ano = 2025, trimestre = 1) {
   readr::read_rds(processed_data_path("eph_individual_2017_2025_std.rds", paths)) %>%
     dplyr::filter(ANO4 == ano, TRIMESTRE == trimestre, expss::unlab(ESTADO) == 1) %>%
-    dplyr::select(AGLOMERADO, PONDERA, PP04D_COD)
+    dplyr::select(AGLOMERADO, PONDERA, PP04D_COD, PP04B_COD)
 }
 
 load_cno_to_isco <- function(paths) {
@@ -118,6 +118,36 @@ isco_labels_remote <- function() {
   )
 }
 
+industry_section_labels_remote <- function() {
+  tibble::tribble(
+    ~industry_section, ~label_industry,
+    "A", "Agricultura, ganadería, caza, silvicultura y pesca",
+    "B", "Explotación de minas y canteras",
+    "C", "Industria manufacturera",
+    "D", "Suministro de electricidad, gas, vapor y aire acondicionado",
+    "E", "Suministro de agua; alcantarillado, gestión de desechos y saneamiento",
+    "F", "Construcción",
+    "G", "Comercio al por mayor y al por menor; reparación de vehículos",
+    "H", "Transporte y almacenamiento",
+    "I", "Alojamiento y servicios de comidas",
+    "J", "Información y comunicación",
+    "K", "Actividades financieras y de seguros",
+    "L", "Actividades inmobiliarias",
+    "M", "Actividades profesionales, científicas y técnicas",
+    "N", "Actividades administrativas y servicios de apoyo",
+    "O", "Administración pública y defensa; planes de seguro social obligatorio",
+    "P", "Enseñanza",
+    "Q", "Salud humana y servicios sociales",
+    "R", "Artes, entretenimiento y recreación",
+    "S", "Otras actividades de servicios",
+    "T", "Actividades de los hogares como empleadores y productores para uso propio",
+    "U", "Actividades de organizaciones y organismos extraterritoriales",
+    "V", "Descripción de actividad vacía",
+    "W", "Falsos ocupados",
+    "Z", "Actividad no especificada claramente"
+  )
+}
+
 create_remote_work_tables <- function(eph, cno_to_isco, onet_crosswalk) {
   eph %>%
     dplyr::mutate(cno2001 = stringr::str_replace_all(as.character(PP04D_COD), "[^0-9]", "")) %>%
@@ -154,4 +184,54 @@ summarise_by_agglomerado <- function(eph_final) {
       .groups = "drop"
     ) %>%
     dplyr::left_join(agglomerado_labels_remote(), by = "AGLOMERADO")
+}
+
+summarise_by_industry <- function(eph_final) {
+  eph_final %>%
+    dplyr::mutate(
+      industry_code = expss::unlab(PP04B_COD),
+      industry_code = stringr::str_to_upper(stringr::str_trim(as.character(industry_code))),
+      industry_code = stringr::str_remove_all(industry_code, "[^A-Z0-9]"),
+      section_numeric = suppressWarnings(as.integer(stringr::str_sub(industry_code, 1, 2))),
+      industry_section = dplyr::case_when(
+        stringr::str_detect(industry_code, "^[A-Z]") ~ stringr::str_sub(industry_code, 1, 1),
+        !is.na(section_numeric) & section_numeric >= 1 & section_numeric <= 3 ~ "A",
+        !is.na(section_numeric) & section_numeric >= 5 & section_numeric <= 9 ~ "B",
+        !is.na(section_numeric) & section_numeric >= 10 & section_numeric <= 33 ~ "C",
+        !is.na(section_numeric) & section_numeric == 35 ~ "D",
+        !is.na(section_numeric) & section_numeric >= 36 & section_numeric <= 39 ~ "E",
+        !is.na(section_numeric) & section_numeric >= 40 & section_numeric <= 43 ~ "F",
+        !is.na(section_numeric) & section_numeric >= 45 & section_numeric <= 48 ~ "G",
+        !is.na(section_numeric) & section_numeric >= 49 & section_numeric <= 53 ~ "H",
+        !is.na(section_numeric) & section_numeric >= 55 & section_numeric <= 56 ~ "I",
+        !is.na(section_numeric) & section_numeric >= 58 & section_numeric <= 63 ~ "J",
+        !is.na(section_numeric) & section_numeric >= 64 & section_numeric <= 66 ~ "K",
+        !is.na(section_numeric) & section_numeric == 68 ~ "L",
+        !is.na(section_numeric) & section_numeric >= 69 & section_numeric <= 75 ~ "M",
+        !is.na(section_numeric) & section_numeric >= 77 & section_numeric <= 82 ~ "N",
+        !is.na(section_numeric) & section_numeric >= 83 & section_numeric <= 84 ~ "O",
+        !is.na(section_numeric) & section_numeric == 85 ~ "P",
+        !is.na(section_numeric) & section_numeric >= 86 & section_numeric <= 88 ~ "Q",
+        !is.na(section_numeric) & section_numeric >= 90 & section_numeric <= 93 ~ "R",
+        !is.na(section_numeric) & section_numeric >= 94 & section_numeric <= 96 ~ "S",
+        !is.na(section_numeric) & section_numeric >= 97 & section_numeric <= 98 ~ "T",
+        !is.na(section_numeric) & section_numeric == 99 ~ "U",
+        TRUE ~ NA_character_
+      )
+    ) %>%
+    dplyr::mutate(industry_section = dplyr::na_if(industry_section, "")) %>%
+    dplyr::filter(!is.na(industry_section)) %>%
+    dplyr::group_by(industry_section) %>%
+    dplyr::summarise(
+      empleo_total = sum(PONDERA, na.rm = TRUE),
+      ai_exp_prom = stats::weighted.mean(aioe, w = PONDERA, na.rm = TRUE),
+      wfh_prom = stats::weighted.mean(teleworkable, w = PONDERA, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    dplyr::left_join(industry_section_labels_remote(), by = "industry_section") %>%
+    dplyr::mutate(
+      label_industry = dplyr::coalesce(label_industry, "Sin clasificar")
+    ) %>%
+    dplyr::arrange(dplyr::desc(empleo_total)) %>%
+    dplyr::select(industry_section, label_industry, dplyr::everything())
 }
