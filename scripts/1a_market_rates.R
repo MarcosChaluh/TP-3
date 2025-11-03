@@ -13,7 +13,7 @@ eph_base_labeled <- load_processed_data("eph_individual_2017_2025_std.rds", path
 aglomerados_grandes_cods <- c(32, 33, 13, 4, 10)
 
 tasas_mercado_laboral <- compute_market_rates(eph_base_labeled)
-print(tasas_mercado_laboral, n = 40)
+print(tasas_mercado_laboral, n = 5)
 
 save_table(tasas_mercado_laboral, "tasas_mercado_laboral.csv", paths)
 

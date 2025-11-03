@@ -1,13 +1,41 @@
 # Mapping helpers to keep label logic in a single place.
 
 #' Return a named vector with the short labels for agglomerados
+#' Retorna un vector nombrado con etiquetas cortas para los 31 aglomerados de la EPH.
 agglomerado_short_labels <- function() {
   c(
-    "33" = "GBA",
-    "32" = "CABA",
-    "13" = "Gran Córdoba",
+    "2"  = "Gran La Plata",
+    "3"  = "Bahía Blanca",
     "4"  = "Gran Rosario",
-    "10" = "Gran Mendoza"
+    "5"  = "Gran Santa Fe",
+    "6"  = "Gran Paraná",
+    "7"  = "Posadas",
+    "8"  = "Gran Resistencia",
+    "9"  = "Com. Rivadavia",
+    "10" = "Gran Mendoza",
+    "12" = "Corrientes",
+    "13" = "Gran Córdoba",
+    "14" = "Concordia",
+    "15" = "Formosa",
+    "17" = "Neuquén-Plottier",
+    "18" = "S. del Estero",
+    "19" = "Jujuy-Palpalá",
+    "20" = "Río Gallegos",
+    "22" = "Gran Catamarca",
+    "23" = "Salta",
+    "25" = "La Rioja",
+    "26" = "San Luis",
+    "27" = "Gran San Juan",
+    "29" = "Gran Tucumán",
+    "30" = "Santa Rosa",
+    "31" = "Ushuaia-R.Gde",
+    "32" = "CABA",
+    "33" = "GBA",
+    "34" = "Mar del Plata",
+    "36" = "Río Cuarto",
+    "38" = "San Nicolás",
+    "91" = "Rawson-Trelew",
+    "93" = "Viedma"
   )
 }
 
