@@ -155,7 +155,7 @@ create_remote_work_tables <- function(eph, cno_to_isco, onet_crosswalk) {
     dplyr::left_join(cno_to_isco, by = "cno2001") %>%
     dplyr::filter(!is.na(isco2)) %>%
     dplyr::mutate(isco2 = sprintf("%02d", as.integer(isco2))) %>%
-    dplyr::left_join(onet_crosswalk$data, by = stats::setNames("isco2", onet_crosswalk$col)) %>%
+    dplyr::left_join(onet_crosswalk$data, by = stats::setNames(onet_crosswalk$col, "isco2")) %>%
     dplyr::filter(!is.na(aioe), !is.na(teleworkable))
 }
 
