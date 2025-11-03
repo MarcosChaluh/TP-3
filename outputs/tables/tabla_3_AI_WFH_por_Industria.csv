@@ -1,0 +1,20 @@
+industry_section,label_industry,empleo_total,ai_exp_prom,wfh_prom
+G,Comercio al por mayor y al por menor; reparación de vehículos,43492148,-0.252882361525101,0.16494379629168926
+C,Industria manufacturera,38503617,-0.6193906434602131,0.10877239143532931
+P,Enseñanza,36803718,0.8828359380207755,0.7481839878242736
+Q,Salud humana y servicios sociales,32047368,0.16152481234510116,0.11571451827182813
+F,Construcción,29380826,-1.1067780289981874,0.04981449466396894
+H,Transporte y almacenamiento,17793297,-0.49099707719497404,0.12509826031679233
+O,Administración pública y defensa; planes de seguro social obligatorio,14554697,0.1800468223144391,0.3667447010404957
+S,Otras actividades de servicios,13734534,-0.49870911200738227,0.06759282841339939
+M,"Actividades profesionales, científicas y técnicas",11345825,0.40429728439973295,0.40212498870729985
+I,Alojamiento y servicios de comidas,10074331,-0.44130210935267067,0.09178185132094628
+N,Actividades administrativas y servicios de apoyo,8626322,-0.18710161327958774,0.2125342353322772
+J,Información y comunicación,7133177,0.41031051120914286,0.4831139056271841
+R,"Artes, entretenimiento y recreación",6629127,0.3512470212103343,0.41359967157063066
+T,Actividades de los hogares como empleadores y productores para uso propio,5958847,-0.8527909499680054,0.10304753587397025
+K,Actividades financieras y de seguros,5555926,0.6753969098725937,0.5326260194970199
+L,Actividades inmobiliarias,2348064,0.769460967688913,0.5386799508020225
+U,Actividades de organizaciones y organismos extraterritoriales,1726678,0.004024777330863077,0.28775530237832414
+E,"Suministro de agua; alcantarillado, gestión de desechos y saneamiento",1288225,-0.3807845425684954,0.20015098294164452
+D,"Suministro de electricidad, gas, vapor y aire acondicionado",1285133,0.0026736469763051795,0.3352874760822421
