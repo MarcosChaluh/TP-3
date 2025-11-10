@@ -5,10 +5,12 @@ calculate_poverty_status <- function(eph_numeric, basket) {
   eph::calculate_poverty(base = eph_numeric, basket = basket, print_summary = FALSE)
 }
 
-#' Aggregate poverty and indigence rates by region
-aggregate_poverty_by_region <- function(base_con_pobreza) {
+#' Aggregate poverty and indigence rates by provincia
+aggregate_poverty_by_province <- function(base_con_pobreza) {
   base_con_pobreza %>%
-    group_by(ANO4, TRIMESTRE, REGION) %>%
+    add_province_from_agglomerado() %>%
+    filter(!is.na(PROVINCIA)) %>%
+    group_by(ANO4, TRIMESTRE, PROVINCIA, label_provincia) %>%
     summarise(
       total_indigentes = sum(PONDIH[situacion == "indigente"], na.rm = TRUE),
       total_pobres_no_ind = sum(PONDIH[situacion == "pobre"], na.rm = TRUE),
@@ -21,39 +23,37 @@ aggregate_poverty_by_region <- function(base_con_pobreza) {
       tasa_indigencia = dplyr::if_else(total_poblacion == 0, NA_real_,
                                        total_indigentes / total_poblacion)
     ) %>%
-    arrange(desc(ANO4), desc(TRIMESTRE), REGION)
+    arrange(desc(ANO4), desc(TRIMESTRE), PROVINCIA)
 }
 
-#' Prepare poverty data for plotting by region
-prepare_poverty_plot_data <- function(tasas_pobreza) {
+#' Prepare poverty data for plotting by provincia
+prepare_poverty_plot_data <- function(tasas_pobreza, provincias = NULL) {
   tasas_pobreza %>%
-    mutate(REGION_NUM = suppressWarnings(as.numeric(REGION))) %>%
-    filter(REGION_NUM != 0) %>%
+    filter(is.null(provincias) | PROVINCIA %in% provincias) %>%
     mutate(
       fecha_decimal = ANO4 + (TRIMESTRE - 1) / 4,
       tasa_pobreza_pct = tasa_pobreza * 100
-    ) %>%
-    with_region_labels(label_col = "label_corta")
+    )
 }
 
-#' Plot poverty series by region
+#' Plot poverty series by provincia
 plot_poverty_series <- function(plot_data) {
   label_data <- plot_data %>%
-    group_by(REGION) %>%
+    group_by(PROVINCIA) %>%
     slice_max(order_by = fecha_decimal, n = 1) %>%
     ungroup()
 
   ggplot(plot_data,
          aes(x = fecha_decimal,
              y = tasa_pobreza_pct,
-             color = factor(REGION),
-             group = factor(REGION))) +
+             color = factor(label_provincia),
+             group = factor(PROVINCIA))) +
     geom_line(linewidth = 1.1) +
     geom_point(size = 1.5) +
     scale_color_brewer(palette = "Dark2") +
     ggrepel::geom_label_repel(
       data = label_data,
-      aes(label = label_corta),
+      aes(label = label_provincia),
       nudge_x = 0.25,
       direction = "y",
       hjust = 0,
@@ -67,8 +67,8 @@ plot_poverty_series <- function(plot_data) {
     ) +
     scale_y_continuous(labels = function(y) paste0(round(y, 0), "%")) +
     labs(
-      title = "Tasa de Pobreza por Región (Serie de Tiempo)",
-      subtitle = "Evolución trimestral por región",
+      title = "Tasa de Pobreza por Provincia (Serie de Tiempo)",
+      subtitle = "Evolución trimestral por provincia",
       y = "Tasa de Pobreza",
       x = "Año"
     ) +
@@ -78,5 +78,47 @@ plot_poverty_series <- function(plot_data) {
       plot.title = element_text(face = "bold", size = 16),
       plot.subtitle = element_text(size = 12),
       axis.title = element_text(size = 11, face = "bold")
+    )
+}
+
+#' Prepare heatmap for poverty indicators by provincia
+prepare_poverty_heatmap <- function(tasas_pobreza, ano, trimestre) {
+  tasas_pobreza %>%
+    filter(ANO4 == ano, TRIMESTRE == trimestre) %>%
+    mutate(
+      tasa_pobreza_pct = tasa_pobreza * 100,
+      tasa_indigencia_pct = tasa_indigencia * 100
+    ) %>%
+    select(PROVINCIA, label_provincia, tasa_pobreza_pct, tasa_indigencia_pct) %>%
+    tidyr::pivot_longer(
+      cols = starts_with("tasa_"),
+      names_to = "indicador",
+      values_to = "valor"
+    ) %>%
+    mutate(
+      indicador = dplyr::recode(indicador,
+                                tasa_pobreza_pct = "Pobreza",
+                                tasa_indigencia_pct = "Indigencia")
+    )
+}
+
+#' Plot heatmap of poverty indicators by provincia
+plot_poverty_heatmap <- function(heatmap_data, ano, trimestre) {
+  ggplot(heatmap_data,
+         aes(x = indicador, y = reorder(label_provincia, valor), fill = valor)) +
+    geom_tile(color = "white") +
+    geom_text(aes(label = sprintf("%0.1f%%", valor)), size = 3) +
+    scale_fill_distiller(palette = "Spectral", direction = -1) +
+    labs(
+      title = "Pobreza e Indigencia por Provincia",
+      subtitle = sprintf("Valores porcentuales %dT%d", ano, trimestre),
+      x = "Indicador",
+      y = "Provincia",
+      fill = "%"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.title = element_text(face = "bold")
     )
 }

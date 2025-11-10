@@ -23,10 +23,16 @@ print(tabla_ocupacion, n = 20)
 
 save_table(tabla_ocupacion, "tabla_1_AI_WFH_por_Ocupacion.csv", paths)
 
-tabla_aglomerado <- summarise_by_agglomerado(eph_final)
-print(tabla_aglomerado, n = 20)
+tabla_provincia <- summarise_by_province(eph_final)
+print(tabla_provincia, n = 24)
 
-save_table(tabla_aglomerado, "tabla_2_AI_WFH_por_Aglomerado.csv", paths)
+save_table(tabla_provincia, "tabla_2_AI_WFH_por_Provincia.csv", paths)
+
+heatmap_data <- prepare_remote_work_heatmap(tabla_provincia)
+g_heatmap <- plot_remote_work_heatmap(heatmap_data)
+
+save_plot(g_heatmap, "remoto_heatmap_provincias.png", paths, width = 9, height = 8)
+print(g_heatmap)
 
 tabla_industria <- summarise_by_industry(eph_final)
 print(tabla_industria, n = 20)

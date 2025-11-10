@@ -23,6 +23,8 @@ prepare_mincer_data <- function(eph) {
         TRUE ~ NA_real_
       )
     ) %>%
+    add_province_from_agglomerado() %>%
+    filter(!is.na(PROVINCIA)) %>%
     filter(
       ESTADO == 1,
       CAT_OCUP == 3,
@@ -36,31 +38,30 @@ prepare_mincer_data <- function(eph) {
     )
 }
 
-#' Estimate Mincer regressions by agglomerado
-estimate_mincer_by_aglomerado <- function(mincer_data) {
+#' Estimate Mincer regressions by provincia
+estimate_mincer_by_province <- function(mincer_data) {
   mincer_data %>%
-    tidyr::nest(data = -AGLOMERADO) %>%
+    tidyr::nest(data = -c(ANO4, TRIMESTRE, PROVINCIA, label_provincia)) %>%
     mutate(
       modelo = purrr::map(data, ~ lm(LN_WAGE_HORA ~ anios_escolaridad + experiencia + experiencia2 + sexo, data = .x)),
       coefs = purrr::map(modelo, broom::tidy)
     ) %>%
-    select(AGLOMERADO, coefs) %>%
+    select(ANO4, TRIMESTRE, PROVINCIA, label_provincia, coefs) %>%
     tidyr::unnest(coefs) %>%
     ungroup()
 }
 
-#' Plot the education returns by agglomerado
+#' Plot the education returns by provincia
 plot_mincer_returns <- function(coeficientes) {
   plot_data <- coeficientes %>%
     filter(term == "anios_escolaridad") %>%
     mutate(
       retorno_pct = estimate * 100,
-      AGLOMERADO_NUM = suppressWarnings(as.numeric(AGLOMERADO))
-    ) %>%
-    with_agglomerado_labels(label_col = "label_corta")
+      label_provincia = dplyr::coalesce(label_provincia, PROVINCIA)
+    )
 
   ggplot(plot_data,
-         aes(x = reorder(label_corta, retorno_pct), y = retorno_pct)) +
+         aes(x = reorder(label_provincia, retorno_pct), y = retorno_pct)) +
     geom_col(fill = "#0072B2") +
     coord_flip() +
     geom_text(aes(label = paste0(round(retorno_pct, 1), "%")),
@@ -70,15 +71,44 @@ plot_mincer_returns <- function(coeficientes) {
       expand = expansion(mult = c(0, 0.1))
     ) +
     labs(
-      title = "Retorno a la Educación por Aglomerado",
+      title = "Retorno a la Educación por Provincia",
       subtitle = "Coeficiente de 'años de escolaridad' en Mincer",
       y = "Aumento % del ingreso por hora por cada año de educación",
-      x = "Aglomerado"
+      x = "Provincia"
     ) +
     theme_minimal() +
     theme(
       panel.grid.major.y = element_blank(),
       panel.grid.minor.x = element_blank(),
+      axis.title = element_text(face = "bold")
+    )
+}
+
+#' Plot heatmap of education returns by provincia for a selected quarter
+plot_mincer_heatmap <- function(coeficientes, ano, trimestre) {
+  heatmap_data <- coeficientes %>%
+    filter(term == "anios_escolaridad", ANO4 == ano, TRIMESTRE == trimestre) %>%
+    mutate(
+      retorno_pct = estimate * 100,
+      label_provincia = dplyr::coalesce(label_provincia, PROVINCIA)
+    )
+
+  ggplot(heatmap_data,
+         aes(x = "Retorno educativo", y = reorder(label_provincia, retorno_pct), fill = retorno_pct)) +
+    geom_tile(color = "white") +
+    geom_text(aes(label = sprintf("%0.1f%%", retorno_pct)), size = 3) +
+    scale_fill_distiller(palette = "Spectral", direction = -1) +
+    labs(
+      title = "Retorno a la Educación por Provincia",
+      subtitle = sprintf("Coeficientes %dT%d", ano, trimestre),
+      x = "",
+      y = "Provincia",
+      fill = "%"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
       axis.title = element_text(face = "bold")
     )
 }
