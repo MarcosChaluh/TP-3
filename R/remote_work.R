@@ -1,9 +1,12 @@
 # Helpers used in the remote work analysis (script 2).
 
+source(file.path("R", "labels.R"))
+
 load_eph_for_remote_work <- function(paths, ano = 2025, trimestre = 1) {
   readr::read_rds(processed_data_path("eph_individual_2017_2025_std.rds", paths)) %>%
     dplyr::filter(ANO4 == ano, TRIMESTRE == trimestre, expss::unlab(ESTADO) == 1) %>%
-    dplyr::select(AGLOMERADO, PONDERA, PP04D_COD, PP04B_COD)
+    dplyr::select(AGLOMERADO, PONDERA, PP04D_COD, PP04B_COD) %>%
+    add_province_from_agglomerado()
 }
 
 load_cno_to_isco <- function(paths) {
@@ -29,44 +32,6 @@ load_onet_crosswalk <- function(paths) {
   col_isco2 <- col_isco2[col_isco2 %in% names(conv)][1]
   stopifnot(!is.na(col_isco2))
   list(data = conv, col = col_isco2)
-}
-
-agglomerado_labels_remote <- function() {
-  tibble::tribble(
-    ~AGLOMERADO, ~label_aglomerado,
-    2, "Gran La Plata",
-    3, "Bahía Blanca - Cerri",
-    4, "Gran Rosario",
-    5, "Gran Santa Fe",
-    6, "Gran Paraná",
-    7, "Posadas",
-    8, "Gran Resistencia",
-    9, "Comodoro Rivadavia - R. Tilly",
-    10, "Gran Mendoza",
-    12, "Corrientes",
-    13, "Gran Córdoba",
-    14, "Concordia",
-    15, "Formosa",
-    17, "Neuquén - Plottier",
-    18, "S. del Estero - La Banda",
-    19, "Jujuy - Palpalá",
-    20, "Río Gallegos",
-    22, "Gran Catamarca",
-    23, "Salta",
-    25, "La Rioja",
-    26, "San Luis - El Chorrillo",
-    27, "Gran San Juan",
-    29, "Gran Tucumán - T. Viejo",
-    30, "Santa Rosa - Toay",
-    31, "Ushuaia - Río Grande",
-    32, "Ciudad de Buenos Aires",
-    33, "Partidos del GBA",
-    34, "Mar del Plata - Batán",
-    36, "Río Cuarto",
-    38, "San Nicolás - Villa Constitución",
-    91, "Rawson - Trelew",
-    93, "Viedma - Carmen de Patagones"
-  )
 }
 
 isco_labels_remote <- function() {
@@ -173,17 +138,55 @@ summarise_by_occupation <- function(eph_final) {
     dplyr::select(isco2, label_isco2, dplyr::everything())
 }
 
-summarise_by_agglomerado <- function(eph_final) {
+summarise_by_province <- function(eph_final) {
   eph_final %>%
-    dplyr::mutate(AGLOMERADO = expss::unlab(AGLOMERADO)) %>%
-    dplyr::group_by(AGLOMERADO) %>%
+    dplyr::filter(!is.na(PROVINCIA)) %>%
+    dplyr::group_by(PROVINCIA, label_provincia) %>%
     dplyr::summarise(
       empleo_total = sum(PONDERA, na.rm = TRUE),
       ai_exp_prom = stats::weighted.mean(aioe, w = PONDERA, na.rm = TRUE),
       wfh_prom = stats::weighted.mean(teleworkable, w = PONDERA, na.rm = TRUE),
       .groups = "drop"
+    )
+}
+
+prepare_remote_work_heatmap <- function(resumen_provincia) {
+  resumen_provincia %>%
+    dplyr::mutate(
+      ai_exp_pct = ai_exp_prom * 100,
+      wfh_pct = wfh_prom * 100
     ) %>%
-    dplyr::left_join(agglomerado_labels_remote(), by = "AGLOMERADO")
+    dplyr::select(PROVINCIA, label_provincia, ai_exp_pct, wfh_pct) %>%
+    tidyr::pivot_longer(
+      cols = c(ai_exp_pct, wfh_pct),
+      names_to = "indicador",
+      values_to = "valor"
+    ) %>%
+    dplyr::mutate(
+      indicador = dplyr::recode(indicador,
+                                ai_exp_pct = "Exposición a IA",
+                                wfh_pct = "Teletrabajo")
+    )
+}
+
+plot_remote_work_heatmap <- function(heatmap_data) {
+  ggplot(heatmap_data,
+         aes(x = indicador, y = reorder(label_provincia, valor), fill = valor)) +
+    geom_tile(color = "white") +
+    geom_text(aes(label = sprintf("%0.1f%%", valor)), size = 3) +
+    scale_fill_distiller(palette = "Spectral", direction = -1) +
+    labs(
+      title = "Trabajo Remoto y Exposición a IA por Provincia",
+      subtitle = "Promedios ponderados trimestre seleccionado",
+      x = "Indicador",
+      y = "Provincia",
+      fill = "%"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      axis.title = element_text(face = "bold")
+    )
 }
 
 summarise_by_industry <- function(eph_final) {
