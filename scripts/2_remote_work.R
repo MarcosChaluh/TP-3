@@ -9,6 +9,7 @@ library(stringr)
 library(janitor)
 library(tibble)
 library(expss)
+library(ggplot2)
 
 paths <- ensure_project_structure()
 
