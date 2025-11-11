@@ -39,16 +39,48 @@ agglomerado_short_labels <- function() {
   )
 }
 
+#' Normalize agglomerado identifiers for reliable comparisons
+normalize_agglomerado_key <- function(values) {
+  if (is.null(values)) {
+    return(character())
+  }
+
+  keys <- as.character(values)
+  keys[keys %in% c("", "NA", "NaN")] <- NA_character_
+  normalized <- iconv(keys, from = "", to = "ASCII//TRANSLIT")
+  normalized <- gsub("[^[:alnum:]]+", " ", normalized)
+  normalized <- trimws(gsub("\\s+", " ", normalized))
+  normalized <- tolower(normalized)
+  normalized[normalized == ""] <- NA_character_
+  normalized
+}
+
+#' Return province shares for agglomerados spanning multiple provinces
+#'
+#' Shares approximate the population split of each multi-provincial aglomerado
+#' so survey weights can be allocated proportionally when data are expanded to
+#' the provincial level.
+multi_province_agglomerado_shares <- function() {
+  data.frame(
+    agglomerado_key = c(
+      rep(c("38", "San Nicolas - Villa Constitucion", "San Nicolás - Villa Constitución"), each = 2),
+      rep(c("93", "Viedma - Carmen de Patagones", "Viedma - Carmen de Patagones."), each = 2)
+    ),
+    PROVINCIA = c(
+      rep(c("Buenos Aires", "Santa Fe"), times = 3),
+      rep(c("Buenos Aires", "Río Negro"), times = 3)
+    ),
+    share = c(
+      rep(c(0.64, 0.36), times = 3),
+      rep(c(0.30, 0.70), times = 3)
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
 #' Return identifiers for agglomerados spanning multiple provinces
 multi_province_agglomerados <- function() {
-  c(
-    "38",
-    "San Nicolas - Villa Constitucion",
-    "San Nicolás - Villa Constitución",
-    "93",
-    "Viedma - Carmen de Patagones",
-    "Viedma - Carmen de Patagones."
-  )
+  unique(multi_province_agglomerado_shares()$agglomerado_key)
 }
 
 #' Return a named vector mapping agglomerados to provinces
@@ -216,15 +248,69 @@ add_province_from_agglomerado <- function(
     province[missing] <- mapping_lower[tolower(as.character(aglo_values[missing]))]
   }
 
-  multi <- multi_province_agglomerados()
-  aglo_chr <- as.character(aglo_values)
-  # Exclude agglomerados that span multiple provinces to avoid misallocating totals.
-  multi_hits <- !is.na(aglo_chr) & (aglo_chr %in% multi | as.character(aglo_num) %in% multi)
-  if (any(multi_hits)) {
-    province[multi_hits] <- NA_character_
+  data[[province_col]] <- unname(province)
+  shares_lookup <- multi_province_agglomerado_shares()
+  if (nrow(shares_lookup) > 0) {
+    shares_lookup$key_norm <- normalize_agglomerado_key(shares_lookup$agglomerado_key)
+    shares_lookup <- shares_lookup[!is.na(shares_lookup$key_norm), c("key_norm", "PROVINCIA", "share")]
+
+    match_by_keys <- function(values) {
+      keys_norm <- normalize_agglomerado_key(values)
+      valid <- which(!is.na(keys_norm))
+      if (length(valid) == 0) {
+        return(data.frame(row_id = integer(), key_norm = character(), PROVINCIA = character(), share = numeric(), stringsAsFactors = FALSE))
+      }
+
+      dplyr::left_join(
+        data.frame(row_id = valid, key_norm = keys_norm[valid], stringsAsFactors = FALSE),
+        shares_lookup,
+        by = "key_norm"
+      )
+    }
+
+    matches <- dplyr::bind_rows(
+      match_by_keys(as.character(aglo_values)),
+      match_by_keys(as.character(aglo_num))
+    )
+
+    if (nrow(matches) > 0) {
+      matches <- matches[!is.na(matches$PROVINCIA) & !is.na(matches$share), , drop = FALSE]
+      if (nrow(matches) > 0) {
+        matches <- matches[!duplicated(matches[c("row_id", "PROVINCIA")]), , drop = FALSE]
+
+        data[["..row_id"]] <- seq_len(nrow(data))
+
+        multi_rows <- dplyr::semi_join(data, matches, by = c("..row_id" = "row_id"))
+        other_rows <- dplyr::anti_join(data, matches, by = c("..row_id" = "row_id"))
+
+        expanded <- dplyr::left_join(matches, multi_rows, by = c("row_id" = "..row_id"))
+        expanded[[province_col]] <- expanded$PROVINCIA
+
+        weight_cols <- intersect(c("PONDERA", "PONDIH", "PONDIIO", "PONDII"), names(expanded))
+        if (length(weight_cols) > 0) {
+          for (col in weight_cols) {
+            expanded[[col]] <- expanded[[col]] * expanded$share
+          }
+        }
+
+        drop_cols <- c("row_id", "PROVINCIA", "share", "key_norm")
+        drop_cols <- drop_cols[drop_cols %in% names(expanded)]
+        if (length(drop_cols) > 0) {
+          expanded <- expanded[, setdiff(names(expanded), drop_cols), drop = FALSE]
+        }
+
+        if ("..row_id" %in% names(other_rows)) {
+          other_rows <- other_rows[, setdiff(names(other_rows), "..row_id"), drop = FALSE]
+        }
+        if ("..row_id" %in% names(expanded)) {
+          expanded <- expanded[, setdiff(names(expanded), "..row_id"), drop = FALSE]
+        }
+
+        data <- dplyr::bind_rows(other_rows, expanded)
+      }
+    }
   }
 
-  data[[province_col]] <- unname(province)
   data <- with_province_labels(data, province_col = province_col, label_col = label_col)
   data
 }
