@@ -10,16 +10,29 @@ library(ggplot2)
 library(purrr)
 library(tidyr)
 
+ANO_RECIENTE <- 2025
+TRIM_RECIENTE <- 1
+
 paths <- ensure_project_structure()
 eph_base_labeled <- load_processed_data("eph_individual_2017_2025_std.rds", paths)
 
 mincer_data <- prepare_mincer_data(eph_base_labeled)
-coeficientes_mincer <- estimate_mincer_by_aglomerado(mincer_data)
-print(coeficientes_mincer, n = 50)
+coeficientes_mincer <- estimate_mincer_by_province(mincer_data)
 
-save_table(coeficientes_mincer, "mincer_coeficientes.csv", paths)
+save_table(coeficientes_mincer, "mincer_coeficientes_provincias.csv", paths)
 
-g_mincer_coefs <- plot_mincer_returns(coeficientes_mincer)
+coeficientes_recientes <- coeficientes_mincer %>%
+  filter(ANO4 == ANO_RECIENTE, TRIMESTRE == TRIM_RECIENTE)
 
-save_plot(g_mincer_coefs, "mincer_retorno_educacion.png", paths, width = 11, height = 8)
+print(coeficientes_recientes, n = 50)
+
+g_mincer_coefs <- plot_mincer_returns(coeficientes_recientes)
+
+save_plot(g_mincer_coefs, "mincer_retorno_educacion_provincias.png", paths, width = 11, height = 8)
 print(g_mincer_coefs)
+
+map_data <- prepare_mincer_map(coeficientes_mincer, ANO_RECIENTE, TRIM_RECIENTE)
+g_mincer_map <- plot_mincer_map(map_data, ANO_RECIENTE, TRIM_RECIENTE)
+
+save_plot(g_mincer_map, "mincer_map_provincias.png", paths, width = 8, height = 8)
+print(g_mincer_map)
