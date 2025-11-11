@@ -34,8 +34,8 @@ g_pobreza_region <- plot_poverty_series(plot_data_pobreza)
 save_plot(g_pobreza_region, "pobreza_por_provincia.png", paths)
 print(g_pobreza_region)
 
-heatmap_data <- prepare_poverty_heatmap(tasas_pobreza, 2025, 1)
-g_heatmap <- plot_poverty_heatmap(heatmap_data, 2025, 1)
+map_data <- prepare_poverty_map(tasas_pobreza, 2025, 1)
+g_map <- plot_poverty_map(map_data, 2025, 1)
 
-save_plot(g_heatmap, "pobreza_heatmap_provincias.png", paths)
-print(g_heatmap)
+save_plot(g_map, "pobreza_map_provincias.png", paths, width = 10, height = 6)
+print(g_map)

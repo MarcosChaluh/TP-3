@@ -1,4 +1,5 @@
 source(file.path("R", "labels.R"))
+source(file.path("R", "maps.R"))
 
 #' Run the poverty calculation using the official basket
 calculate_poverty_status <- function(eph_numeric, basket) {
@@ -81,8 +82,8 @@ plot_poverty_series <- function(plot_data) {
     )
 }
 
-#' Prepare heatmap for poverty indicators by provincia
-prepare_poverty_heatmap <- function(tasas_pobreza, ano, trimestre) {
+#' Prepare map data for poverty indicators by provincia
+prepare_poverty_map <- function(tasas_pobreza, ano, trimestre) {
   tasas_pobreza %>%
     filter(ANO4 == ano, TRIMESTRE == trimestre) %>%
     mutate(
@@ -99,26 +100,41 @@ prepare_poverty_heatmap <- function(tasas_pobreza, ano, trimestre) {
       indicador = dplyr::recode(indicador,
                                 tasa_pobreza_pct = "Pobreza",
                                 tasa_indigencia_pct = "Indigencia")
-    )
+    ) %>%
+    attach_province_geometry()
 }
 
-#' Plot heatmap of poverty indicators by provincia
-plot_poverty_heatmap <- function(heatmap_data, ano, trimestre) {
-  ggplot(heatmap_data,
-         aes(x = indicador, y = reorder(label_provincia, valor), fill = valor)) +
-    geom_tile(color = "white") +
-    geom_text(aes(label = sprintf("%0.1f%%", valor)), size = 3) +
-    scale_fill_distiller(palette = "Spectral", direction = -1) +
+#' Plot map of poverty indicators by provincia
+plot_poverty_map <- function(map_data, ano, trimestre) {
+  ggplot(map_data) +
+    geom_sf(aes(fill = valor), color = "white", linewidth = 0.2) +
+    facet_wrap(~ indicador) +
+    scale_fill_viridis_c(
+      option = "mako",
+      direction = -1,
+      na.value = "grey90",
+      labels = function(x) sprintf("%0.1f%%", x)
+    ) +
     labs(
       title = "Pobreza e Indigencia por Provincia",
       subtitle = sprintf("Valores porcentuales %dT%d", ano, trimestre),
-      x = "Indicador",
-      y = "Provincia",
       fill = "%"
     ) +
     theme_minimal() +
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.title = element_text(face = "bold")
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank(),
+      strip.text = element_text(face = "bold")
     )
+}
+
+# Backwards compatibility helpers -------------------------------------------------
+
+prepare_poverty_heatmap <- function(tasas_pobreza, ano, trimestre) {
+  prepare_poverty_map(tasas_pobreza, ano, trimestre)
+}
+
+plot_poverty_heatmap <- function(heatmap_data, ano, trimestre) {
+  plot_poverty_map(heatmap_data, ano, trimestre)
 }

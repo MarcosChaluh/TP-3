@@ -31,8 +31,8 @@ g_gini <- plot_gini_series(plot_data_gini)
 save_plot(g_gini, "desigualdad_gini_series_provincias.png", paths)
 print(g_gini)
 
-heatmap_data <- prepare_inequality_heatmap(calculos_desigualdad, 2025, 1)
-g_heatmap <- plot_inequality_heatmap(heatmap_data, 2025, 1)
+map_data <- prepare_inequality_map(calculos_desigualdad, 2025, 1)
+g_map <- plot_inequality_map(map_data, 2025, 1)
 
-save_plot(g_heatmap, "desigualdad_heatmap_provincias.png", paths)
-print(g_heatmap)
+save_plot(g_map, "desigualdad_map_provincias.png", paths, width = 10, height = 6)
+print(g_map)

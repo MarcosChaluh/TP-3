@@ -1,4 +1,5 @@
 source(file.path("R", "labels.R"))
+source(file.path("R", "maps.R"))
 
 #' Compute Gini and percentile ratios by provincia
 compute_income_inequality <- function(eph) {
@@ -76,8 +77,8 @@ plot_gini_series <- function(plot_data) {
     )
 }
 
-#' Prepare inequality heatmap data for a given quarter
-prepare_inequality_heatmap <- function(inequality_data, ano, trimestre) {
+#' Prepare inequality map data for a given quarter
+prepare_inequality_map <- function(inequality_data, ano, trimestre) {
   inequality_data %>%
     filter(ANO4 == ano, TRIMESTRE == trimestre) %>%
     mutate(
@@ -93,29 +94,36 @@ prepare_inequality_heatmap <- function(inequality_data, ano, trimestre) {
       indicador = dplyr::recode(indicador,
                                 gini = "Gini",
                                 ratio_p90_p10 = "P90/P10")
-    )
+    ) %>%
+    attach_province_geometry()
 }
 
-#' Plot heatmap of inequality indicators by provincia
-plot_inequality_heatmap <- function(heatmap_data, ano, trimestre) {
-  ggplot(heatmap_data,
-         aes(x = indicador, y = reorder(label_provincia, valor, na.rm = TRUE), fill = valor)) +
-    geom_tile(color = "white") +
-    geom_text(aes(label = ifelse(indicador == "Gini",
-                                 scales::number(valor, accuracy = 0.01),
-                                 scales::number(valor, accuracy = 0.1))),
-              size = 3, na.rm = TRUE) +
-    scale_fill_distiller(palette = "Spectral", direction = -1, na.value = "grey90") +
+#' Plot map of inequality indicators by provincia
+plot_inequality_map <- function(map_data, ano, trimestre) {
+  ggplot(map_data) +
+    geom_sf(aes(fill = valor), color = "white", linewidth = 0.2) +
+    facet_wrap(~ indicador, scales = "free") +
+    scale_fill_viridis_c(option = "plasma", na.value = "grey90") +
     labs(
       title = "Indicadores de Desigualdad por Provincia",
       subtitle = sprintf("Valores %dT%d", ano, trimestre),
-      x = "Indicador",
-      y = "Provincia",
       fill = "Valor"
     ) +
     theme_minimal() +
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.title = element_text(face = "bold")
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank(),
+      strip.text = element_text(face = "bold")
     )
+}
+
+# Backwards compatibility helpers -------------------------------------------------
+
+prepare_inequality_heatmap <- function(inequality_data, ano, trimestre) {
+  prepare_inequality_map(inequality_data, ano, trimestre)
+}
+
+plot_inequality_heatmap <- function(heatmap_data, ano, trimestre) {
+  plot_inequality_map(heatmap_data, ano, trimestre)
 }

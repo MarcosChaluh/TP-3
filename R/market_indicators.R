@@ -1,4 +1,5 @@
 source(file.path("R", "labels.R"))
+source(file.path("R", "maps.R"))
 
 #' Compute labour market rates by provincia
 compute_market_rates <- function(eph) {
@@ -77,8 +78,8 @@ plot_unemployment_series <- function(plot_data) {
     )
 }
 
-#' Prepare unemployment heatmap data for a given quarter
-prepare_unemployment_heatmap <- function(rates, ano, trimestre) {
+#' Prepare unemployment map data for a given quarter
+prepare_unemployment_map <- function(rates, ano, trimestre) {
   rates %>%
     filter(ANO4 == ano, TRIMESTRE == trimestre) %>%
     mutate(
@@ -97,26 +98,41 @@ prepare_unemployment_heatmap <- function(rates, ano, trimestre) {
                                 tasa_actividad_pct = "Actividad",
                                 tasa_empleo_pct = "Empleo",
                                 tasa_desempleo_pct = "Desempleo")
-    )
+    ) %>%
+    attach_province_geometry()
 }
 
-#' Plot heatmap of labour market rates by province
-plot_unemployment_heatmap <- function(heatmap_data, ano, trimestre) {
-  ggplot(heatmap_data,
-         aes(x = indicador, y = reorder(label_provincia, valor), fill = valor)) +
-    geom_tile(color = "white") +
-    geom_text(aes(label = sprintf("%0.1f%%", valor)), size = 3) +
-    scale_fill_distiller(palette = "Spectral", direction = -1) +
+#' Plot map of labour market rates by province
+plot_unemployment_map <- function(map_data, ano, trimestre) {
+  ggplot(map_data) +
+    geom_sf(aes(fill = valor), color = "white", linewidth = 0.2) +
+    facet_wrap(~ indicador) +
+    scale_fill_viridis_c(
+      option = "magma",
+      direction = -1,
+      na.value = "grey90",
+      labels = function(x) sprintf("%0.1f%%", x)
+    ) +
     labs(
       title = "Indicadores del Mercado Laboral por Provincia",
       subtitle = sprintf("Valores porcentuales %dT%d", ano, trimestre),
-      x = "Indicador",
-      y = "Provincia",
       fill = "%"
     ) +
     theme_minimal() +
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.title = element_text(face = "bold")
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank(),
+      strip.text = element_text(face = "bold")
     )
+}
+
+# Backwards compatibility helpers -------------------------------------------------
+
+prepare_unemployment_heatmap <- function(rates, ano, trimestre) {
+  prepare_unemployment_map(rates, ano, trimestre)
+}
+
+plot_unemployment_heatmap <- function(heatmap_data, ano, trimestre) {
+  plot_unemployment_map(heatmap_data, ano, trimestre)
 }

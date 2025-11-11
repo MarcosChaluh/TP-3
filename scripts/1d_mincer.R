@@ -31,7 +31,8 @@ g_mincer_coefs <- plot_mincer_returns(coeficientes_recientes)
 save_plot(g_mincer_coefs, "mincer_retorno_educacion_provincias.png", paths, width = 11, height = 8)
 print(g_mincer_coefs)
 
-g_mincer_heatmap <- plot_mincer_heatmap(coeficientes_mincer, ANO_RECIENTE, TRIM_RECIENTE)
+map_data <- prepare_mincer_map(coeficientes_mincer, ANO_RECIENTE, TRIM_RECIENTE)
+g_mincer_map <- plot_mincer_map(map_data, ANO_RECIENTE, TRIM_RECIENTE)
 
-save_plot(g_mincer_heatmap, "mincer_heatmap_provincias.png", paths, width = 9, height = 8)
-print(g_mincer_heatmap)
+save_plot(g_mincer_map, "mincer_map_provincias.png", paths, width = 8, height = 8)
+print(g_mincer_map)

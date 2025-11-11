@@ -1,4 +1,5 @@
 source(file.path("R", "labels.R"))
+source(file.path("R", "maps.R"))
 
 #' Prepare the dataset used for the Mincer regression
 prepare_mincer_data <- function(eph) {
@@ -84,31 +85,46 @@ plot_mincer_returns <- function(coeficientes) {
     )
 }
 
-#' Plot heatmap of education returns by provincia for a selected quarter
-plot_mincer_heatmap <- function(coeficientes, ano, trimestre) {
-  heatmap_data <- coeficientes %>%
+#' Prepare map-ready data for education returns by provincia
+prepare_mincer_map <- function(coeficientes, ano, trimestre) {
+  coeficientes %>%
     filter(term == "anios_escolaridad", ANO4 == ano, TRIMESTRE == trimestre) %>%
     mutate(
       retorno_pct = estimate * 100,
-      label_provincia = dplyr::coalesce(label_provincia, PROVINCIA)
-    )
+      label_provincia = dplyr::coalesce(label_provincia, PROVINCIA),
+      indicador = "Retorno educativo",
+      valor = retorno_pct
+    ) %>%
+    select(PROVINCIA, label_provincia, indicador, valor) %>%
+    attach_province_geometry()
+}
 
-  ggplot(heatmap_data,
-         aes(x = "Retorno educativo", y = reorder(label_provincia, retorno_pct), fill = retorno_pct)) +
-    geom_tile(color = "white") +
-    geom_text(aes(label = sprintf("%0.1f%%", retorno_pct)), size = 3) +
-    scale_fill_distiller(palette = "Spectral", direction = -1) +
+#' Plot map of education returns by provincia for a selected quarter
+plot_mincer_map <- function(map_data, ano, trimestre) {
+  ggplot(map_data) +
+    geom_sf(aes(fill = valor), color = "white", linewidth = 0.2) +
+    scale_fill_viridis_c(
+      option = "inferno",
+      direction = -1,
+      na.value = "grey90",
+      labels = function(x) sprintf("%0.1f%%", x)
+    ) +
     labs(
       title = "Retorno a la Educación por Provincia",
       subtitle = sprintf("Coeficientes %dT%d", ano, trimestre),
-      x = "",
-      y = "Provincia",
       fill = "%"
     ) +
     theme_minimal() +
     theme(
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank(),
-      axis.title = element_text(face = "bold")
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank()
     )
+}
+
+# Backwards compatibility helper --------------------------------------------------
+
+plot_mincer_heatmap <- function(coeficientes, ano, trimestre) {
+  map_data <- prepare_mincer_map(coeficientes, ano, trimestre)
+  plot_mincer_map(map_data, ano, trimestre)
 }

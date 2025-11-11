@@ -29,8 +29,8 @@ g <- plot_unemployment_series(plot_data)
 save_plot(g, "desempleo_provincias.png", paths)
 print(g)
 
-heatmap_data <- prepare_unemployment_heatmap(tasas_mercado_laboral, 2025, 1)
-g_heatmap <- plot_unemployment_heatmap(heatmap_data, 2025, 1)
+map_data <- prepare_unemployment_map(tasas_mercado_laboral, 2025, 1)
+g_map <- plot_unemployment_map(map_data, 2025, 1)
 
-save_plot(g_heatmap, "desempleo_heatmap_provincias.png", paths)
-print(g_heatmap)
+save_plot(g_map, "desempleo_map_provincias.png", paths, width = 10, height = 6)
+print(g_map)

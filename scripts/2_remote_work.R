@@ -29,11 +29,11 @@ print(tabla_provincia, n = 24)
 
 save_table(tabla_provincia, "tabla_2_AI_WFH_por_Provincia.csv", paths)
 
-heatmap_data <- prepare_remote_work_heatmap(tabla_provincia)
-g_heatmap <- plot_remote_work_heatmap(heatmap_data)
+map_data <- prepare_remote_work_map(tabla_provincia)
+g_map <- plot_remote_work_map(map_data)
 
-save_plot(g_heatmap, "remoto_heatmap_provincias.png", paths, width = 9, height = 8)
-print(g_heatmap)
+save_plot(g_map, "remoto_map_provincias.png", paths, width = 10, height = 6)
+print(g_map)
 
 tabla_industria <- summarise_by_industry(eph_final)
 print(tabla_industria, n = 20)

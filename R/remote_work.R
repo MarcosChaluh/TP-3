@@ -1,6 +1,7 @@
 # Helpers used in the remote work analysis (script 2).
 
 source(file.path("R", "labels.R"))
+source(file.path("R", "maps.R"))
 
 load_eph_for_remote_work <- function(paths, ano = 2025, trimestre = 1) {
   readr::read_rds(processed_data_path("eph_individual_2017_2025_std.rds", paths)) %>%
@@ -150,7 +151,7 @@ summarise_by_province <- function(eph_final) {
     )
 }
 
-prepare_remote_work_heatmap <- function(resumen_provincia) {
+prepare_remote_work_map <- function(resumen_provincia) {
   resumen_provincia %>%
     dplyr::mutate(
       ai_exp_pct = ai_exp_prom * 100,
@@ -166,27 +167,42 @@ prepare_remote_work_heatmap <- function(resumen_provincia) {
       indicador = dplyr::recode(indicador,
                                 ai_exp_pct = "Exposición a IA",
                                 wfh_pct = "Teletrabajo")
-    )
+    ) %>%
+    attach_province_geometry()
 }
 
-plot_remote_work_heatmap <- function(heatmap_data) {
-  ggplot(heatmap_data,
-         aes(x = indicador, y = reorder(label_provincia, valor), fill = valor)) +
-    geom_tile(color = "white") +
-    geom_text(aes(label = sprintf("%0.1f%%", valor)), size = 3) +
-    scale_fill_distiller(palette = "Spectral", direction = -1) +
+plot_remote_work_map <- function(map_data) {
+  ggplot(map_data) +
+    geom_sf(aes(fill = valor), color = "white", linewidth = 0.2) +
+    facet_wrap(~ indicador) +
+    scale_fill_viridis_c(
+      option = "cividis",
+      direction = -1,
+      na.value = "grey90",
+      labels = function(x) sprintf("%0.1f%%", x)
+    ) +
     labs(
       title = "Trabajo Remoto y Exposición a IA por Provincia",
       subtitle = "Promedios ponderados trimestre seleccionado",
-      x = "Indicador",
-      y = "Provincia",
       fill = "%"
     ) +
     theme_minimal() +
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      axis.title = element_text(face = "bold")
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank(),
+      strip.text = element_text(face = "bold")
     )
+}
+
+# Backwards compatibility helpers -------------------------------------------------
+
+prepare_remote_work_heatmap <- function(resumen_provincia) {
+  prepare_remote_work_map(resumen_provincia)
+}
+
+plot_remote_work_heatmap <- function(heatmap_data) {
+  plot_remote_work_map(heatmap_data)
 }
 
 summarise_by_industry <- function(eph_final) {
