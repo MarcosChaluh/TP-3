@@ -17,7 +17,7 @@ TRIM_RECIENTE <- 1
 informalidad <- compute_informality_rate(eph_base_labeled, ANO_RECIENTE, TRIM_RECIENTE)
 print(informalidad, n = 10)
 
-save_table(informalidad, "indicador_informalidad_provincias.csv", paths)
+save_table(informalidad, sprintf("indicador_informalidad_provincias_%dT%d.csv", ANO_RECIENTE, TRIM_RECIENTE), paths)
 
 g_informalidad <- plot_ranked_bars(
   informalidad,
@@ -35,7 +35,7 @@ print(g_informalidad)
 brecha_genero <- compute_activity_gender_gap(eph_base_labeled, ANO_RECIENTE, TRIM_RECIENTE)
 print(brecha_genero, n = 10)
 
-save_table(brecha_genero, "indicador_brecha_genero_provincias.csv", paths)
+save_table(brecha_genero, sprintf("indicador_brecha_genero_provincias_%dT%d.csv", ANO_RECIENTE, TRIM_RECIENTE), paths)
 
 g_brecha_genero <- plot_ranked_bars(
   brecha_genero,
@@ -53,7 +53,7 @@ print(g_brecha_genero)
 cuentapropismo <- compute_self_employment_rate(eph_base_labeled, ANO_RECIENTE, TRIM_RECIENTE)
 print(cuentapropismo, n = 10)
 
-save_table(cuentapropismo, "indicador_cuentapropismo_provincias.csv", paths)
+save_table(cuentapropismo, sprintf("indicador_cuentapropismo_provincias_%dT%d.csv", ANO_RECIENTE, TRIM_RECIENTE), paths)
 
 g_cuentapropismo <- plot_ranked_bars(
   cuentapropismo,
@@ -67,3 +67,10 @@ g_cuentapropismo <- plot_ranked_bars(
 
 save_plot(g_cuentapropismo, "cuentapropismo_provincias.png", paths, width = 11, height = 8)
 print(g_cuentapropismo)
+
+resumen_indicadores <- summarise_structural_indicators(informalidad, brecha_genero, cuentapropismo)
+print(resumen_indicadores, n = 15)
+
+save_table(resumen_indicadores,
+           sprintf("indicadores_estructurales_resumen_%dT%d.csv", ANO_RECIENTE, TRIM_RECIENTE),
+           paths)

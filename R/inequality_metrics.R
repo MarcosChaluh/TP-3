@@ -98,6 +98,58 @@ prepare_inequality_map <- function(inequality_data, ano, trimestre) {
     attach_province_geometry()
 }
 
+#' Prepare inequality indicators for a given quarter
+prepare_inequality_snapshot <- function(inequality_data, ano, trimestre) {
+  inequality_data %>%
+    filter(ANO4 == ano, TRIMESTRE == trimestre) %>%
+    select(PROVINCIA, label_provincia, gini, ratio_p90_p10) %>%
+    tidyr::pivot_longer(
+      cols = c(gini, ratio_p90_p10),
+      names_to = "indicador",
+      values_to = "valor"
+    ) %>%
+    mutate(
+      indicador = dplyr::recode(indicador,
+                                gini = "Coeficiente de Gini",
+                                ratio_p90_p10 = "Relación P90/P10"),
+      etiqueta_valor = dplyr::case_when(
+        indicador == "Coeficiente de Gini" ~ scales::number(valor, accuracy = 0.01),
+        indicador == "Relación P90/P10" ~ scales::number(valor, accuracy = 0.1),
+        TRUE ~ as.character(valor)
+      )
+    ) %>%
+    group_by(indicador) %>%
+    arrange(valor, .by_group = TRUE) %>%
+    mutate(etiqueta_provincia = factor(label_provincia, levels = unique(label_provincia))) %>%
+    ungroup()
+}
+
+#' Plot inequality rankings with horizontal bars and labels
+plot_inequality_snapshot <- function(snapshot_data, ano, trimestre) {
+  ggplot(snapshot_data, aes(x = valor, y = etiqueta_provincia)) +
+    geom_col(fill = "#6a51a3") +
+    geom_text(
+      aes(label = etiqueta_valor),
+      hjust = -0.1,
+      size = 3.2,
+      color = "black"
+    ) +
+    facet_wrap(~ indicador, scales = "free_x") +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.2))) +
+    labs(
+      title = "Indicadores de desigualdad por provincia",
+      subtitle = sprintf("Valores %dT%d", ano, trimestre),
+      x = "",
+      y = "Provincia"
+    ) +
+    theme_minimal() +
+    theme(
+      strip.text = element_text(face = "bold"),
+      panel.grid.major.y = element_blank(),
+      axis.text.y = element_text(size = 8)
+    )
+}
+
 #' Plot map of inequality indicators by provincia
 plot_inequality_map <- function(map_data, ano, trimestre) {
   indicator_specs <- list(

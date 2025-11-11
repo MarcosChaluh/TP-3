@@ -96,3 +96,24 @@ plot_ranked_bars <- function(data, value_col, title, subtitle, y_label,
       axis.title = element_text(face = "bold")
     )
 }
+
+#' Combine structural indicators into a long summary table
+summarise_structural_indicators <- function(informalidad, brecha_genero, cuentapropismo) {
+  informalidad_long <- informalidad %>%
+    transmute(PROVINCIA, label_provincia,
+              indicador = "Informalidad",
+              valor = tasa_no_registro_pct)
+
+  brecha_genero_long <- brecha_genero %>%
+    transmute(PROVINCIA, label_provincia,
+              indicador = "Brecha de actividad (H-M)",
+              valor = brecha_actividad_pp)
+
+  cuentapropismo_long <- cuentapropismo %>%
+    transmute(PROVINCIA, label_provincia,
+              indicador = "Cuentapropismo",
+              valor = tasa_cuentaprop_pct)
+
+  dplyr::bind_rows(informalidad_long, brecha_genero_long, cuentapropismo_long) %>%
+    arrange(indicador, desc(valor))
+}
