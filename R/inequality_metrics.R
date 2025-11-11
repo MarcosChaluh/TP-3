@@ -100,22 +100,109 @@ prepare_inequality_map <- function(inequality_data, ano, trimestre) {
 
 #' Plot map of inequality indicators by provincia
 plot_inequality_map <- function(map_data, ano, trimestre) {
-  ggplot(map_data) +
-    geom_sf(aes(fill = valor), color = "white", linewidth = 0.2) +
-    facet_wrap(~ indicador) +
-    scale_fill_viridis_c(option = "plasma", na.value = "grey90") +
-    labs(
-      title = "Indicadores de Desigualdad por Provincia",
-      subtitle = sprintf("Valores %dT%d", ano, trimestre),
-      fill = "Valor"
-    ) +
-    theme_minimal() +
+  indicator_specs <- list(
+    list(
+      name = "Gini",
+      title = "Coeficiente de Gini",
+      fill_label = "Gini",
+      formatter = scales::label_number(accuracy = 0.01)
+    ),
+    list(
+      name = "P90/P10",
+      title = "Relación P90/P10",
+      fill_label = "P90/P10",
+      formatter = scales::label_number(accuracy = 0.1)
+    )
+  )
+
+  map_theme <- theme_minimal(base_size = 11) +
     theme(
       axis.text = element_blank(),
       axis.title = element_blank(),
-      panel.grid = element_blank(),
-      strip.text = element_text(face = "bold")
+      panel.grid = element_blank()
     )
+
+  indicator_plots <- lapply(indicator_specs, function(spec) {
+    indicator_data <- dplyr::filter(map_data, indicador == spec$name)
+
+    if (nrow(indicator_data) == 0) {
+      return(NULL)
+    }
+
+    label_values <- spec$formatter(indicator_data$valor)
+    label_values[is.na(indicator_data$valor)] <- "s/d"
+
+    indicator_labels <- indicator_data %>%
+      dplyr::mutate(
+        label_text = paste0(label_provincia, ": ", label_values)
+      )
+
+    ggplot(indicator_data) +
+      geom_sf(aes(fill = valor), color = "white", linewidth = 0.25) +
+      scale_fill_viridis_c(option = "plasma", na.value = "grey90") +
+      ggrepel::geom_label_repel(
+        data = indicator_labels,
+        aes(label = label_text),
+        stat = "sf_coordinates",
+        min.segment.length = 0,
+        seed = 123,
+        size = 3,
+        label.size = 0.2,
+        fill = scales::alpha("white", 0.85),
+        segment.color = "grey40",
+        max.overlaps = Inf
+      ) +
+      labs(
+        title = spec$title,
+        fill = spec$fill_label
+      ) +
+      map_theme +
+      theme(
+        plot.title = element_text(face = "bold")
+      )
+  })
+
+  indicator_plots <- Filter(Negate(is.null), indicator_plots)
+
+  if (length(indicator_plots) == 1) {
+    return(indicator_plots[[1]])
+  }
+
+  grobs_matrix <- matrix(lapply(indicator_plots, ggplot2::ggplotGrob), nrow = 1)
+  widths <- rep(list(grid::unit(1, "null")), ncol(grobs_matrix))
+  heights <- list(grid::unit(1, "null"))
+  combined <- gtable::gtable_matrix(
+    name = "inequality_maps",
+    grobs = grobs_matrix,
+    widths = widths,
+    heights = heights
+  )
+
+  combined <- gtable::gtable_add_rows(combined, grid::unit(1.5, "lines"), 0)
+  combined <- gtable::gtable_add_grob(
+    combined,
+    grid::textGrob(
+      "Indicadores de Desigualdad por Provincia",
+      gp = grid::gpar(fontface = "bold", fontsize = 16)
+    ),
+    t = 1,
+    l = 1,
+    r = ncol(grobs_matrix)
+  )
+
+  combined <- gtable::gtable_add_rows(combined, grid::unit(1.1, "lines"), 1)
+  combined <- gtable::gtable_add_grob(
+    combined,
+    grid::textGrob(
+      sprintf("Valores %dT%d", ano, trimestre),
+      gp = grid::gpar(fontsize = 11)
+    ),
+    t = 2,
+    l = 1,
+    r = ncol(grobs_matrix)
+  )
+
+  combined
 }
 
 # Backwards compatibility helpers -------------------------------------------------
