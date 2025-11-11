@@ -102,7 +102,7 @@ prepare_inequality_map <- function(inequality_data, ano, trimestre) {
 plot_inequality_map <- function(map_data, ano, trimestre) {
   ggplot(map_data) +
     geom_sf(aes(fill = valor), color = "white", linewidth = 0.2) +
-    facet_wrap(~ indicador, scales = "free") +
+    facet_wrap(~ indicador) +
     scale_fill_viridis_c(option = "plasma", na.value = "grey90") +
     labs(
       title = "Indicadores de Desigualdad por Provincia",
