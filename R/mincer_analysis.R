@@ -52,6 +52,24 @@ estimate_mincer_by_province <- function(mincer_data) {
     ungroup()
 }
 
+#' Extract the education coefficient snapshot for a selected quarter
+extract_mincer_snapshot <- function(coeficientes, ano, trimestre) {
+  coeficientes %>%
+    filter(ANO4 == ano, TRIMESTRE == trimestre, term == "anios_escolaridad") %>%
+    transmute(
+      ANO4,
+      TRIMESTRE,
+      PROVINCIA,
+      label_provincia = dplyr::coalesce(label_provincia, PROVINCIA),
+      coeficiente = estimate,
+      error_estandar = std.error,
+      estadistico_t = statistic,
+      p_valor = p.value,
+      retorno_pct = estimate * 100
+    ) %>%
+    arrange(desc(retorno_pct))
+}
+
 #' Plot the education returns by provincia
 plot_mincer_returns <- function(coeficientes) {
   plot_data <- coeficientes %>%

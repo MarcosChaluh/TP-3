@@ -26,7 +26,8 @@ g_informalidad <- plot_ranked_bars(
   sprintf("Porcentaje de asalariados sin descuento jubilatorio %dT%d", ANO_RECIENTE, TRIM_RECIENTE),
   "Tasa de No Registro (%)",
   label_col = "label_provincia",
-  x_label = "Provincia"
+  x_label = "Provincia",
+  fill_color = "#f16913"
 )
 
 save_plot(g_informalidad, "informalidad_provincias.png", paths, width = 11, height = 8)
@@ -44,7 +45,8 @@ g_brecha_genero <- plot_ranked_bars(
   sprintf("Diferencia en puntos porcentuales (Hombres - Mujeres) %dT%d", ANO_RECIENTE, TRIM_RECIENTE),
   "Brecha de Actividad (p.p.)",
   label_col = "label_provincia",
-  x_label = "Provincia"
+  x_label = "Provincia",
+  fill_color = "#756bb1"
 )
 
 save_plot(g_brecha_genero, "brecha_genero_actividad_provincias.png", paths, width = 11, height = 8)
@@ -62,7 +64,8 @@ g_cuentapropismo <- plot_ranked_bars(
   sprintf("Porcentaje de ocupados que trabajan por su cuenta %dT%d", ANO_RECIENTE, TRIM_RECIENTE),
   "Tasa de Cuentapropismo (%)",
   label_col = "label_provincia",
-  x_label = "Provincia"
+  x_label = "Provincia",
+  fill_color = "#31a354"
 )
 
 save_plot(g_cuentapropismo, "cuentapropismo_provincias.png", paths, width = 11, height = 8)

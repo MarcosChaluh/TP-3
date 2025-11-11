@@ -30,10 +30,14 @@ print(tabla_provincia, n = 24)
 save_table(tabla_provincia, "tabla_2_AI_WFH_por_Provincia.csv", paths)
 
 map_data <- prepare_remote_work_map(tabla_provincia)
-g_map <- plot_remote_work_map(map_data)
+g_ai <- plot_remote_work_indicator(map_data, "Exposición a IA")
+g_teletrabajo <- plot_remote_work_indicator(map_data, "Teletrabajo")
 
-save_plot(g_map, "remoto_map_provincias.png", paths, width = 10, height = 6)
-print(g_map)
+save_plot(g_ai, "remoto_exposicion_ia_provincias.png", paths, width = 10, height = 6)
+print(g_ai)
+
+save_plot(g_teletrabajo, "remoto_teletrabajo_provincias.png", paths, width = 10, height = 6)
+print(g_teletrabajo)
 
 tabla_industria <- summarise_by_industry(eph_final)
 print(tabla_industria, n = 20)

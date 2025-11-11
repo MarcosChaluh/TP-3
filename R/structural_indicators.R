@@ -73,13 +73,14 @@ compute_self_employment_rate <- function(eph, ano, trimestre) {
 
 #' Generic helper to plot ranked bar charts with labels on the bars
 plot_ranked_bars <- function(data, value_col, title, subtitle, y_label,
-                             label_col = "label_corta", x_label = "Aglomerado") {
+                             label_col = "label_corta", x_label = "Aglomerado",
+                             fill_color = "#0072B2") {
   data$.value <- data[[value_col]]
   label_suffix <- if (grepl("brecha", value_col)) " p.p." else "%"
   labels <- data[[label_col]]
 
   ggplot(data, aes(x = reorder(labels, .value), y = .value)) +
-    geom_col(fill = "#0072B2") +
+    geom_col(fill = fill_color) +
     coord_flip() +
     geom_text(aes(label = paste0(round(.value, 1), label_suffix)),
               hjust = -0.2, size = 3.5, color = "black") +

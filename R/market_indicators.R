@@ -122,17 +122,23 @@ prepare_unemployment_snapshot <- function(rates, ano, trimestre) {
                                 tasa_desempleo_pct = "Desempleo")
     ) %>%
     group_by(indicador) %>%
-    arrange(valor, .by_group = TRUE) %>%
+    arrange(desc(valor), .by_group = TRUE) %>%
     mutate(
-      etiqueta_provincia = factor(label_provincia, levels = unique(label_provincia))
+      etiqueta_provincia = factor(label_provincia, levels = rev(unique(label_provincia)))
     ) %>%
     ungroup()
 }
 
 #' Plot horizontal bars with labels for the provincial labour market snapshot
 plot_unemployment_snapshot <- function(snapshot_data, ano, trimestre) {
-  ggplot(snapshot_data, aes(x = valor, y = etiqueta_provincia)) +
-    geom_col(fill = "#08519c") +
+  palette <- c(
+    "Actividad" = "#3182bd",
+    "Empleo" = "#31a354",
+    "Desempleo" = "#e6550d"
+  )
+
+  ggplot(snapshot_data, aes(x = valor, y = etiqueta_provincia, fill = indicador)) +
+    geom_col(show.legend = FALSE) +
     geom_text(
       aes(label = sprintf("%0.1f%%", valor)),
       hjust = -0.1,
@@ -140,7 +146,8 @@ plot_unemployment_snapshot <- function(snapshot_data, ano, trimestre) {
       color = "black"
     ) +
     facet_wrap(~ indicador, scales = "free_x") +
-    scale_x_continuous(labels = scales::label_percent(accuracy = 0.1), expand = expansion(mult = c(0, 0.15))) +
+    scale_fill_manual(values = palette) +
+    scale_x_continuous(labels = function(x) sprintf("%0.1f%%", x), expand = expansion(mult = c(0, 0.15))) +
     labs(
       title = "Indicadores del mercado laboral por provincia",
       subtitle = sprintf("Porcentajes %dT%d", ano, trimestre),

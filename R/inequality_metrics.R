@@ -119,15 +119,20 @@ prepare_inequality_snapshot <- function(inequality_data, ano, trimestre) {
       )
     ) %>%
     group_by(indicador) %>%
-    arrange(valor, .by_group = TRUE) %>%
-    mutate(etiqueta_provincia = factor(label_provincia, levels = unique(label_provincia))) %>%
+    arrange(desc(valor), .by_group = TRUE) %>%
+    mutate(etiqueta_provincia = factor(label_provincia, levels = rev(unique(label_provincia)))) %>%
     ungroup()
 }
 
 #' Plot inequality rankings with horizontal bars and labels
 plot_inequality_snapshot <- function(snapshot_data, ano, trimestre) {
-  ggplot(snapshot_data, aes(x = valor, y = etiqueta_provincia)) +
-    geom_col(fill = "#6a51a3") +
+  palette <- c(
+    "Coeficiente de Gini" = "#756bb1",
+    "Relación P90/P10" = "#d94801"
+  )
+
+  ggplot(snapshot_data, aes(x = valor, y = etiqueta_provincia, fill = indicador)) +
+    geom_col(show.legend = FALSE) +
     geom_text(
       aes(label = etiqueta_valor),
       hjust = -0.1,
@@ -135,6 +140,7 @@ plot_inequality_snapshot <- function(snapshot_data, ano, trimestre) {
       color = "black"
     ) +
     facet_wrap(~ indicador, scales = "free_x") +
+    scale_fill_manual(values = palette) +
     scale_x_continuous(expand = expansion(mult = c(0, 0.2))) +
     labs(
       title = "Indicadores de desigualdad por provincia",
