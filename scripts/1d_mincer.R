@@ -26,6 +26,13 @@ coeficientes_recientes <- coeficientes_mincer %>%
 
 print(coeficientes_recientes, n = 50)
 
+tabla_snapshot <- extract_mincer_snapshot(coeficientes_mincer, ANO_RECIENTE, TRIM_RECIENTE)
+print(tabla_snapshot, n = 50)
+
+save_table(tabla_snapshot,
+           sprintf("mincer_coeficientes_provincias_%dT%d.csv", ANO_RECIENTE, TRIM_RECIENTE),
+           paths)
+
 g_mincer_coefs <- plot_mincer_returns(coeficientes_recientes)
 
 save_plot(g_mincer_coefs, "mincer_retorno_educacion_provincias.png", paths, width = 11, height = 8)

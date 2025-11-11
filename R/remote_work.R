@@ -171,6 +171,46 @@ prepare_remote_work_map <- function(resumen_provincia) {
     attach_province_geometry()
 }
 
+plot_remote_work_indicator <- function(map_data, indicator_label) {
+  indicator_title <- dplyr::case_when(
+    indicator_label == "Exposición a IA" ~ "Exposición a IA",
+    indicator_label == "Teletrabajo" ~ "Teletrabajo",
+    TRUE ~ indicator_label
+  )
+
+  indicator_subtitle <- dplyr::case_when(
+    indicator_label == "Exposición a IA" ~ "% de trabajadores expuestos a IA",
+    indicator_label == "Teletrabajo" ~ "% de trabajadores con tareas teletrabajables",
+    TRUE ~ NA_character_
+  )
+
+  indicator_data <- dplyr::filter(map_data, indicador == indicator_label)
+
+  if (nrow(indicator_data) == 0) {
+    stop(sprintf("No hay datos para el indicador '%s'", indicator_label))
+  }
+
+  ggplot(indicator_data) +
+    geom_sf(aes(fill = valor), color = "white", linewidth = 0.2) +
+    scale_fill_viridis_c(
+      option = if (indicator_label == "Exposición a IA") "cividis" else "plasma",
+      direction = -1,
+      na.value = "grey90",
+      labels = function(x) sprintf("%0.1f%%", x)
+    ) +
+    labs(
+      title = sprintf("%s por provincia", indicator_title),
+      subtitle = indicator_subtitle,
+      fill = "%"
+    ) +
+    theme_minimal() +
+    theme(
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      panel.grid = element_blank()
+    )
+}
+
 plot_remote_work_map <- function(map_data) {
   ggplot(map_data) +
     geom_sf(aes(fill = valor), color = "white", linewidth = 0.2) +
