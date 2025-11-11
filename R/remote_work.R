@@ -181,7 +181,7 @@ plot_remote_work_indicator <- function(map_data, indicator_label) {
   indicator_subtitle <- dplyr::case_when(
     indicator_label == "Exposición a IA" ~ "% de trabajadores expuestos a IA",
     indicator_label == "Teletrabajo" ~ "% de trabajadores con tareas teletrabajables",
-    TRUE ~ NULL
+    TRUE ~ NA_character_
   )
 
   indicator_data <- dplyr::filter(map_data, indicador == indicator_label)
