@@ -39,9 +39,21 @@ agglomerado_short_labels <- function() {
   )
 }
 
+#' Return identifiers for agglomerados spanning multiple provinces
+multi_province_agglomerados <- function() {
+  c(
+    "38",
+    "San Nicolas - Villa Constitucion",
+    "San Nicolás - Villa Constitución",
+    "93",
+    "Viedma - Carmen de Patagones",
+    "Viedma - Carmen de Patagones."
+  )
+}
+
 #' Return a named vector mapping agglomerados to provinces
 agglomerado_to_province <- function() {
-  c(
+  base_mapping <- c(
     "2" = "Buenos Aires",
     "3" = "Buenos Aires",
     "4" = "Santa Fe",
@@ -71,10 +83,59 @@ agglomerado_to_province <- function() {
     "33" = "Buenos Aires",
     "34" = "Buenos Aires",
     "36" = "Córdoba",
-    "38" = "Buenos Aires",
-    "91" = "Chubut",
-    "93" = "Río Negro"
+    "91" = "Chubut"
   )
+
+  name_mapping <- c(
+    "Gran La Plata" = "Buenos Aires",
+    "Bahia Blanca - Cerri" = "Buenos Aires",
+    "Bahía Blanca - Cerri" = "Buenos Aires",
+    "Gran Rosario" = "Santa Fe",
+    "Gran Santa Fe" = "Santa Fe",
+    "Gran Parana" = "Entre Ríos",
+    "Gran Paraná" = "Entre Ríos",
+    "Posadas" = "Misiones",
+    "Gran Resistencia" = "Chaco",
+    "Cdro. Rivadavia - R.Tilly" = "Chubut",
+    "Gran Mendoza" = "Mendoza",
+    "Corrientes" = "Corrientes",
+    "Gran Cordoba" = "Córdoba",
+    "Gran Córdoba" = "Córdoba",
+    "Concordia" = "Entre Ríos",
+    "Formosa" = "Formosa",
+    "Neuquen - Plottier" = "Neuquén",
+    "Neuquén - Plottier" = "Neuquén",
+    "S. del Estero - La Banda" = "Santiago del Estero",
+    "Jujuy - Palpala" = "Jujuy",
+    "Jujuy - Palpalá" = "Jujuy",
+    "Rio Gallegos" = "Santa Cruz",
+    "Río Gallegos" = "Santa Cruz",
+    "Gran Catamarca" = "Catamarca",
+    "Salta" = "Salta",
+    "La Rioja" = "La Rioja",
+    "San Luis - El Chorrillo" = "San Luis",
+    "Gran San Juan" = "San Juan",
+    "Gran Tucuman - T. Viejo" = "Tucumán",
+    "Gran Tucumán - T. Viejo" = "Tucumán",
+    "Santa Rosa - Toay" = "La Pampa",
+    "Ushuaia - Rio Grande" = "Tierra del Fuego",
+    "Ushuaia - Río Grande" = "Tierra del Fuego",
+    "Ciudad de Buenos Aires" = "Ciudad Autónoma de Buenos Aires",
+    "Partidos del GBA" = "Buenos Aires",
+    "Mar del Plata - Batan" = "Buenos Aires",
+    "Mar del Plata - Batán" = "Buenos Aires",
+    "Rio Cuarto" = "Córdoba",
+    "Río Cuarto" = "Córdoba",
+    "Rawson - Trelew" = "Chubut"
+  )
+
+  mapping <- c(base_mapping, name_mapping)
+  multi <- multi_province_agglomerados()
+  multi <- multi[multi %in% names(mapping)]
+  if (length(multi) > 0) {
+    mapping[multi] <- NA_character_
+  }
+  mapping
 }
 
 #' Return short labels for provinces
@@ -113,7 +174,10 @@ with_agglomerado_labels <- function(data, agglomerado_col = "AGLOMERADO", label_
   aglo_values <- data[[agglomerado_col]]
   aglo_num <- suppressWarnings(as.numeric(aglo_values))
   resolved <- labels[as.character(aglo_num)]
-  resolved[is.na(resolved)] <- as.character(aglo_num[is.na(resolved)])
+  missing <- is.na(resolved) & !is.na(aglo_values)
+  if (any(missing)) {
+    resolved[missing] <- as.character(aglo_values[missing])
+  }
   data[[label_col]] <- resolved
   data
 }
@@ -129,11 +193,37 @@ with_province_labels <- function(data, province_col = "PROVINCIA", label_col = "
 }
 
 #' Derive provinces from agglomerado codes and attach labels
-add_province_from_agglomerado <- function(data, agglomerado_col = "AGLOMERADO", province_col = "PROVINCIA", label_col = "label_provincia") {
+add_province_from_agglomerado <- function(
+    data,
+    agglomerado_col = "AGLOMERADO",
+    province_col = "PROVINCIA",
+    label_col = "label_provincia"
+) {
   mapping <- agglomerado_to_province()
   aglo_values <- data[[agglomerado_col]]
   aglo_num <- suppressWarnings(as.numeric(aglo_values))
   province <- mapping[as.character(aglo_num)]
+
+  missing <- is.na(province) & !is.na(aglo_values)
+  if (any(missing)) {
+    province[missing] <- mapping[as.character(aglo_values[missing])]
+  }
+
+  missing <- is.na(province) & !is.na(aglo_values)
+  if (any(missing)) {
+    mapping_lower <- mapping
+    names(mapping_lower) <- tolower(names(mapping_lower))
+    province[missing] <- mapping_lower[tolower(as.character(aglo_values[missing]))]
+  }
+
+  multi <- multi_province_agglomerados()
+  aglo_chr <- as.character(aglo_values)
+  # Exclude agglomerados that span multiple provinces to avoid misallocating totals.
+  multi_hits <- !is.na(aglo_chr) & (aglo_chr %in% multi | as.character(aglo_num) %in% multi)
+  if (any(multi_hits)) {
+    province[multi_hits] <- NA_character_
+  }
+
   data[[province_col]] <- unname(province)
   data <- with_province_labels(data, province_col = province_col, label_col = label_col)
   data
