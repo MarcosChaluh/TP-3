@@ -142,7 +142,7 @@ plot_inequality_map <- function(map_data, ano, trimestre) {
       scale_fill_viridis_c(option = "plasma", na.value = "grey90") +
       ggrepel::geom_label_repel(
         data = indicator_labels,
-        aes(label = label_text),
+        aes(geometry = geometry, label = label_text),
         stat = "sf_coordinates",
         min.segment.length = 0,
         seed = 123,
