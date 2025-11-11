@@ -169,8 +169,8 @@ plot_inequality_map <- function(map_data, ano, trimestre) {
   }
 
   grobs_matrix <- matrix(lapply(indicator_plots, ggplot2::ggplotGrob), nrow = 1)
-  widths <- rep(list(grid::unit(1, "null")), ncol(grobs_matrix))
-  heights <- list(grid::unit(1, "null"))
+  widths <- grid::unit(rep(1, ncol(grobs_matrix)), "null")
+  heights <- grid::unit(rep(1, nrow(grobs_matrix)), "null")
   combined <- gtable::gtable_matrix(
     name = "inequality_maps",
     grobs = grobs_matrix,
