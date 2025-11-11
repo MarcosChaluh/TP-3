@@ -284,7 +284,18 @@ add_province_from_agglomerado <- function(
         other_rows <- dplyr::anti_join(data, matches, by = c("..row_id" = "row_id"))
 
         expanded <- dplyr::left_join(matches, multi_rows, by = c("row_id" = "..row_id"))
-        expanded[[province_col]] <- expanded$PROVINCIA
+
+        province_source <- province_col
+        if (!province_source %in% names(expanded)) {
+          preferred <- paste0(province_col, c(".x", ".y"))
+          existing <- preferred[preferred %in% names(expanded)]
+          if (length(existing) > 0) {
+            province_source <- existing[[1]]
+          }
+        }
+        if (province_source %in% names(expanded)) {
+          expanded[[province_col]] <- expanded[[province_source]]
+        }
 
         weight_cols <- intersect(c("PONDERA", "PONDIH", "PONDIIO", "PONDII"), names(expanded))
         if (length(weight_cols) > 0) {
@@ -293,7 +304,12 @@ add_province_from_agglomerado <- function(
           }
         }
 
-        drop_cols <- c("row_id", "PROVINCIA", "share", "key_norm")
+        drop_cols <- c("row_id", "share", "key_norm", paste0(province_col, c(".x", ".y")))
+        if (!identical(province_source, province_col) && length(province_source) == 1L) {
+          drop_cols <- c(drop_cols, province_source)
+        }
+        drop_cols <- unique(drop_cols)
+        drop_cols <- drop_cols[drop_cols %in% names(expanded) & drop_cols != province_col]
         drop_cols <- drop_cols[drop_cols %in% names(expanded)]
         if (length(drop_cols) > 0) {
           expanded <- expanded[, setdiff(names(expanded), drop_cols), drop = FALSE]
