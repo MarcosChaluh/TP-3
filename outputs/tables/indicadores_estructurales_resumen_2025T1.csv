@@ -1,0 +1,73 @@
+PROVINCIA,label_provincia,indicador,valor
+San Luis,San Luis,Brecha de actividad (H-M),22.50449579296704
+Formosa,Formosa,Brecha de actividad (H-M),20.31853544189267
+San Juan,San Juan,Brecha de actividad (H-M),19.939187967093837
+Mendoza,Mendoza,Brecha de actividad (H-M),19.25833995255605
+Entre Ríos,Entre Ríos,Brecha de actividad (H-M),18.920540301307085
+Corrientes,Corrientes,Brecha de actividad (H-M),18.272936923154383
+Santiago del Estero,Santiago del Estero,Brecha de actividad (H-M),18.023750275051498
+Tucumán,Tucumán,Brecha de actividad (H-M),17.385624427228457
+Santa Fe,Santa Fe,Brecha de actividad (H-M),17.25328129260781
+Chaco,Chaco,Brecha de actividad (H-M),17.167350019581285
+Catamarca,Catamarca,Brecha de actividad (H-M),16.548245031655277
+Buenos Aires,Buenos Aires,Brecha de actividad (H-M),16.40449880225153
+La Rioja,La Rioja,Brecha de actividad (H-M),15.949478453689501
+Chubut,Chubut,Brecha de actividad (H-M),15.578776811239095
+Neuquén,Neuquén,Brecha de actividad (H-M),15.455812174937783
+Salta,Salta,Brecha de actividad (H-M),15.223296916765378
+Córdoba,Córdoba,Brecha de actividad (H-M),15.144269921519573
+Misiones,Misiones,Brecha de actividad (H-M),15.053737511700945
+Tierra del Fuego,Tierra del Fuego,Brecha de actividad (H-M),10.9049394698026
+Río Negro,Río Negro,Brecha de actividad (H-M),10.384007097086787
+Ciudad Autónoma de Buenos Aires,CABA,Brecha de actividad (H-M),9.256649073981166
+Santa Cruz,Santa Cruz,Brecha de actividad (H-M),8.179242347406955
+Jujuy,Jujuy,Brecha de actividad (H-M),5.094783054903452
+La Pampa,La Pampa,Brecha de actividad (H-M),4.540253752988754
+Formosa,Formosa,Cuentapropismo,31.417449049690866
+Entre Ríos,Entre Ríos,Cuentapropismo,29.396942350684064
+Misiones,Misiones,Cuentapropismo,28.28016426412322
+Mendoza,Mendoza,Cuentapropismo,26.715343522471795
+Jujuy,Jujuy,Cuentapropismo,25.619800796112063
+San Juan,San Juan,Cuentapropismo,25.610159675684617
+Salta,Salta,Cuentapropismo,25.5082192168402
+Córdoba,Córdoba,Cuentapropismo,25.101017009305025
+Corrientes,Corrientes,Cuentapropismo,24.894111305062122
+Buenos Aires,Buenos Aires,Cuentapropismo,24.43372097758559
+Santa Fe,Santa Fe,Cuentapropismo,23.079192068324947
+Tucumán,Tucumán,Cuentapropismo,22.97710934591349
+La Pampa,La Pampa,Cuentapropismo,22.842656983316775
+San Luis,San Luis,Cuentapropismo,22.21649351653734
+Chaco,Chaco,Cuentapropismo,22.210988725116326
+Catamarca,Catamarca,Cuentapropismo,21.36045516338553
+Río Negro,Río Negro,Cuentapropismo,20.45013469281349
+Chubut,Chubut,Cuentapropismo,18.999552951695254
+Ciudad Autónoma de Buenos Aires,CABA,Cuentapropismo,18.80049388127073
+Neuquén,Neuquén,Cuentapropismo,18.473299543558007
+Santiago del Estero,Santiago del Estero,Cuentapropismo,17.27681687737532
+La Rioja,La Rioja,Cuentapropismo,16.14826706418599
+Tierra del Fuego,Tierra del Fuego,Cuentapropismo,16.077542387735306
+Santa Cruz,Santa Cruz,Cuentapropismo,10.819804199723288
+Tucumán,Tucumán,Informalidad,50.80358035286535
+San Juan,San Juan,Informalidad,50.710280593093096
+Salta,Salta,Informalidad,43.75664362694986
+Mendoza,Mendoza,Informalidad,42.92227886325924
+Córdoba,Córdoba,Informalidad,42.62406573110317
+Santiago del Estero,Santiago del Estero,Informalidad,42.03104239642469
+San Luis,San Luis,Informalidad,41.33136572205954
+Jujuy,Jujuy,Informalidad,39.68163125148188
+Corrientes,Corrientes,Informalidad,39.51634189185499
+Catamarca,Catamarca,Informalidad,39.38608041069837
+Chaco,Chaco,Informalidad,38.547788917874094
+Buenos Aires,Buenos Aires,Informalidad,38.210942919090165
+La Rioja,La Rioja,Informalidad,36.14169013428911
+Entre Ríos,Entre Ríos,Informalidad,35.90215741408913
+Formosa,Formosa,Informalidad,35.382608148893354
+Santa Fe,Santa Fe,Informalidad,34.021289147180816
+Misiones,Misiones,Informalidad,33.77148544324795
+La Pampa,La Pampa,Informalidad,29.145919286764354
+Río Negro,Río Negro,Informalidad,25.497058604512624
+Chubut,Chubut,Informalidad,24.622062677891513
+Ciudad Autónoma de Buenos Aires,CABA,Informalidad,21.930858101413456
+Santa Cruz,Santa Cruz,Informalidad,20.985889608135427
+Neuquén,Neuquén,Informalidad,13.51206721250067
+Tierra del Fuego,Tierra del Fuego,Informalidad,13.077734085598678
